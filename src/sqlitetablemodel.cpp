@@ -39,8 +39,14 @@ void SqliteTableModel::setChunkSize(size_t chunksize)
     m_chunkSize = chunksize;
 }
 
+#include <QDebug>
 void SqliteTableModel::setTable(const QString& table, int sortColumn, Qt::SortOrder sortOrder, const QVector<QString>& display_format)
 {
+    qDebug() << "-----------";
+    qDebug() << table;
+    qDebug() << sortColumn;
+    qDebug() << sortOrder;
+
     // Unset all previous settings. When setting a table all information on the previously browsed data set is removed first.
     reset();
 
@@ -55,9 +61,11 @@ void SqliteTableModel::setTable(const QString& table, int sortColumn, Qt::SortOr
     bool allOk = false;
     if(m_db.getObjectByName(table)->type() == sqlb::Object::Types::Table)
     {
+        qDebug() << "is table";
         sqlb::TablePtr t = m_db.getObjectByName(table).dynamicCast<sqlb::Table>();
         if(t && t->fields().size()) // parsing was OK
         {
+            qDebug() << "parsing ok";
             m_headers.push_back(t->rowidColumn());
             m_headers.append(t->fieldNames());
 
@@ -83,6 +91,7 @@ void SqliteTableModel::setTable(const QString& table, int sortColumn, Qt::SortOr
     // NOTE: It would be nice to eventually get rid of this piece here. As soon as the grammar parser is good enough...
     if(!allOk)
     {
+        qDebug() << "not parsed";
         QString sColumnQuery = QString::fromUtf8("SELECT * FROM %1;").arg(sqlb::escapeIdentifier(table));
         m_headers.push_back("rowid");
         m_headers.append(getColumns(sColumnQuery, m_vDataTypes));
@@ -92,7 +101,9 @@ void SqliteTableModel::setTable(const QString& table, int sortColumn, Qt::SortOr
     // current sort order is always changed and thus buildQuery() is always going to be called.
     // This is also why we don't need to call buildQuery() here again.
     m_iSortColumn = -1;
+    qDebug() << "sorting";
     sort(sortColumn, sortOrder);
+    qDebug() << "done";
 }
 
 namespace {
